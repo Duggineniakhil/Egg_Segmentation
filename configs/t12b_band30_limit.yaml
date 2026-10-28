@@ -1,0 +1,6 @@
+name: t12b_band30_limit
+base: t11_nested_03
+change: "GrabCut band 30 px, growth limited to the blob's fitted ellipse x1.3"
+why: "keep the extra reach of t12a but stop leaks into skin/walls of similar colour (#20, #155)"
+pipeline:
+  refine: {band: 30, grow_limit: 1.3}

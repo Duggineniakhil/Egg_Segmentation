@@ -1,0 +1,6 @@
+name: t04_shape_filter
+base: t03_lab_whiteness
+change: "Reject blobs with solidity < 0.85 or ellipse-fit IoU < 0.75"
+why: "Dev eggs: solidity p5 0.97, ellipse IoU p5 0.89 (min 0.66 when occluded); background blobs are irregular"
+pipeline:
+  filter: {min_solidity: 0.85, min_ellipse_iou: 0.75}

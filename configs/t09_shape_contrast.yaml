@@ -1,0 +1,6 @@
+name: t09_shape_contrast
+base: t08_smoothness
+change: "Candidate quality = shape^2 * min(1, contrast/50) * (0.6 if touching image border), replacing ellipse_iou * edge_support; min_quality 0.35 -> 0.3"
+why: "after t08 the egg is usually among the candidates but loses at selection (17 failures). On dev candidates, ellipse IoU (AUC 0.976) and ring contrast (0.941) separate eggs far better than edge support (0.702); the combination gets AUC 0.988 vs 0.760"
+pipeline:
+  sweep: {quality: shape_contrast, min_quality: 0.3}

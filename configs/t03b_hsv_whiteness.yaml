@@ -1,0 +1,6 @@
+name: t03b_hsv_whiteness
+base: t02_cleanup
+change: "Score = V*(1-S) in HSV (alternative whiteness measure to t03)"
+why: "Compare with the Lab version; HSV saturation is unstable for dark pixels"
+pipeline:
+  score: {type: hsv_whiteness}

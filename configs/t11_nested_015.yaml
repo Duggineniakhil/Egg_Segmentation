@@ -1,0 +1,6 @@
+name: t11_nested_015
+base: t10b_grabcut
+change: "Nested upgrade with quality ratio 0.15"
+why: "mIoU still rising at 0.3 while precision falls; find where the curve turns"
+pipeline:
+  sweep: {nest_ratio: 0.15}

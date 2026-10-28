@@ -68,5 +68,25 @@ The result goes to `data/splits.json`, and `outputs/split/scene_groups.jpg` show
 Leakage check: an eval image's mean highest CLIP similarity to any dev image is **0.859**, against **0.911** for a
 random image-level split.
 
+### Task 2b: classical segmentation and experiment log
+```bash
+python src/run_experiment.py configs/t16_nest_cap4.yaml        # final algorithm on dev, appends to the log
+python src/diagnose_sweep.py configs/t16_nest_cap4.yaml        # failures: candidate generation vs selection
+python src/analyze_candidates.py configs/t16_nest_cap4.yaml    # which candidate features separate eggs
+```
+Each trial is a YAML file in `configs/` that inherits from its predecessor (`base:`) and states what changed and
+why. Results, with keep/discard decisions, are in `outputs/experiments/log.csv`, and each trial's worst dev images
+are in `outputs/experiments/<trial>/worst.jpg`. The algorithm ([`src/classical_seg.py`](src/classical_seg.py)):
+1. Gaussian blur.
+2. A threshold sweep (24 levels) over three channels: gray (both polarities), smoothness, and Lab whiteness. The
+   masks are cut along Canny edges.
+3. Every egg-sized, convex, ellipse-like blob becomes a candidate, scored by
+   `shape² × ring contrast × border penalty`.
+4. Greedy non-overlapping selection, which upgrades each pick to the largest nested candidate that is nearly as
+   egg-like (at most 4× bigger).
+5. GrabCut boundary refinement with a 30 px band.
+
+Dev mIoU went from 0.339 (gray + Otsu) to **0.785**.
+
 ## AI tool disclosure
 _To be completed._

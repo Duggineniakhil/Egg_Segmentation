@@ -1,0 +1,6 @@
+name: t10a_ellipse
+base: t09_shape_contrast
+change: "Replace each selected blob by its fitted ellipse"
+why: "t09 precision 0.91 but recall 0.68: selected blobs are usually a correct but partial egg (shadowed side cut off); eggs are near-ellipses (dev GT ellipse IoU median 0.976), so the fit should restore the missing part"
+pipeline:
+  refine: {ellipse: true}

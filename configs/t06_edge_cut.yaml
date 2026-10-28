@@ -1,0 +1,6 @@
+name: t06_edge_cut
+base: t05_sweep
+change: "Cut every sweep mask along dilated Canny edges before finding blobs (rim given back afterwards)"
+why: "diagnose_sweep on t05: 42/50 failures are generation failures; the egg stays connected to a neighbouring region of similar brightness at every threshold, but there is a visible edge between them"
+pipeline:
+  sweep: {edge_cut: true}

@@ -1,0 +1,6 @@
+name: t11_nested_085
+base: t10b_grabcut
+change: "After picking a blob, upgrade it to the largest candidate containing >=90% of it whose quality is >= 0.85 x the pick's"
+why: "t10b loss breakdown: 51% of lost IoU is partial eggs, 29/31 under-segmented (precision 0.96, recall 0.61); the sweep makes nested blobs (bright cap inside whole egg) and the cap often wins on ellipse fit"
+pipeline:
+  sweep: {nest_ratio: 0.85}

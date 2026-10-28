@@ -1,0 +1,6 @@
+name: t01_gray_otsu
+change: "Baseline: grayscale + global Otsu threshold, every connected component is an egg"
+why: "Eggs are the brightest objects in most images; a simplest-possible reference point"
+pipeline:
+  score: {type: gray}
+  threshold: {type: otsu}

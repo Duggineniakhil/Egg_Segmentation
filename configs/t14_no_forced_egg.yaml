@@ -1,0 +1,6 @@
+name: t14_no_forced_egg
+base: t13b_ch_lab
+change: "min_eggs 1 -> 0: output nothing when no candidate reaches min_quality"
+why: "in the missed-egg images the forced pick is a background blob (#11, #106, #117, #125); it scores IoU 0 either way, but adds a false-positive egg"
+pipeline:
+  sweep: {min_eggs: 0}

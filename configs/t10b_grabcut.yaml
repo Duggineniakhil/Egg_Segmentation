@@ -1,0 +1,6 @@
+name: t10b_grabcut
+base: t09_shape_contrast
+change: "GrabCut refinement: eroded blob = sure egg, 15 px band = unsure, 5 iterations"
+why: "same under-segmentation as t10a, but let colour models decide the boundary instead of assuming a perfect ellipse (occluded eggs are not ellipses)"
+pipeline:
+  refine: {grabcut_iters: 5, band: 15}

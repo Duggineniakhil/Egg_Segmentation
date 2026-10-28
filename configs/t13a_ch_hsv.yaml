@@ -1,0 +1,6 @@
+name: t13a_ch_hsv
+base: t12a_band30
+change: "Third sweep channel: HSV whiteness V*(1-S)"
+why: "12 dev images still have the wrong/missing egg (42% of lost IoU), mostly because the egg never forms a clean blob; whiteness separates white eggs from coloured surroundings (pink bowl, hand) that gray and smoothness merge"
+pipeline:
+  sweep: {extra_channels: [smoothness, hsv_whiteness]}

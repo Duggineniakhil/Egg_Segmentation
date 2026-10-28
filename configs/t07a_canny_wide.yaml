@@ -1,0 +1,6 @@
+name: t07a_canny_wide
+base: t06_edge_cut
+change: "Canny sigma 0.33 -> 0.6 (lower low-threshold, more edges)"
+why: "white-on-white outlines (bag, tray, paper) are faint; auto-Canny around the median misses them, so the egg still leaks into the background"
+pipeline:
+  sweep: {canny_sigma: 0.6}

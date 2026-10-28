@@ -1,0 +1,7 @@
+name: t05_sweep
+base: t03b_hsv_whiteness
+change: "Replace the single threshold with a 24-level threshold sweep over the gray image, both polarities; candidates scored by ellipse IoU x Canny edge support, greedy non-overlapping pick (min 1, max 6 eggs)"
+why: "t02-t04 show one global threshold can't isolate eggs on white or bright backgrounds (egg merges with them) or when backlit (egg darker); some threshold isolates the egg in almost every image"
+pipeline:
+  score: {type: gray}
+  threshold: {type: sweep}

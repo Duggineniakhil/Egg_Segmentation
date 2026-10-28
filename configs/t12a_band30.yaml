@@ -1,0 +1,6 @@
+name: t12a_band30
+base: t11_nested_03
+change: "GrabCut unsure band 15 -> 30 px"
+why: "remaining partial eggs: GrabCut cannot grow past the 15 px band, so a blob covering half an egg stays half"
+pipeline:
+  refine: {band: 30}

@@ -1,0 +1,6 @@
+name: t16_nest_cap25
+base: t13b_ch_lab
+change: "Nested upgrade may grow a pick at most 2.5x in area"
+why: "t15 found the #32/#20/#155 leaks happen before GrabCut: the nested upgrade (ratio 0.3) swaps a correct egg for a 4-11x larger egg+paper / egg+hand region that contains it"
+pipeline:
+  sweep: {nest_max_growth: 2.5}

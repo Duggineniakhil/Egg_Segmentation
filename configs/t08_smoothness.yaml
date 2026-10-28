@@ -1,0 +1,6 @@
+name: t08_smoothness
+base: t07a_canny_wide
+change: "Add a second sweep channel: smoothness = 255 - 8*local std (11x11); candidates from both channels compete"
+why: "eggs are smooth while ash, leaves, patterned cloth and keyboards are textured; gives the sweep an independent chance where brightness alone merges egg and background"
+pipeline:
+  sweep: {extra_channels: [smoothness]}

@@ -1,0 +1,6 @@
+name: t13b_ch_lab
+base: t12a_band30
+change: "Third sweep channel: Lab whiteness L - 2*chroma"
+why: "same as t13a with the Lab whiteness measure"
+pipeline:
+  sweep: {extra_channels: [smoothness, lab_whiteness]}

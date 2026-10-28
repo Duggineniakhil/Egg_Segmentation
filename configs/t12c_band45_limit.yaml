@@ -1,0 +1,6 @@
+name: t12c_band45_limit
+base: t11_nested_03
+change: "GrabCut band 45 px, growth limited to fitted ellipse x1.5"
+why: "check whether even more reach helps once growth is bounded"
+pipeline:
+  refine: {band: 45, grow_limit: 1.5}

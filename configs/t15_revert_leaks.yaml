@@ -1,0 +1,6 @@
+name: t15_revert_leaks
+base: t13b_ch_lab
+change: "After GrabCut, per egg: revert to the pre-GrabCut blob if the area grew >2x or the result's ellipse IoU < 0.8"
+why: "t13b worst cases #32, #20, #155: egg correctly selected, then GrabCut floods white paper / skin / wall; the ellipse growth limit (t12b) was too blunt and hurt partial eggs overall, so only undo GrabCut where its output is implausible"
+pipeline:
+  refine: {max_growth: 2.0, min_ellipse_iou: 0.8}

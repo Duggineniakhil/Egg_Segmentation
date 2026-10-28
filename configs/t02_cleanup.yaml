@@ -1,0 +1,8 @@
+name: t02_cleanup
+base: t01_gray_otsu
+change: "Gaussian blur 7, open 5 / close 15, fill holes, keep blobs 1.5%-50% of the image"
+why: "t01 output is thousands of specks; dev eggs cover 2.6%-38% of the image (SAM masks), so size alone removes most noise"
+pipeline:
+  blur: {type: gaussian, ksize: 7}
+  morph: {open: 5, close: 15, fill_holes: true}
+  filter: {min_area_frac: 0.015, max_area_frac: 0.5}

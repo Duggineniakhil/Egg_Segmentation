@@ -1,0 +1,6 @@
+name: t03_lab_whiteness
+base: t02_cleanup
+change: "Score = Lab L - 2*chroma instead of grayscale"
+why: "Eggs are white (low chroma); pink bowls, leaves, orange tubs and purple cloth are bright but colourful"
+pipeline:
+  score: {type: lab_whiteness, chroma_weight: 2.0}
