@@ -1,0 +1,56 @@
+{
+ "image": "not_damaged_134.jpg",
+ "manual_fix": {
+  "add": [
+   {
+    "box": [
+     0,
+     335,
+     295,
+     515
+    ]
+   }
+  ]
+ },
+ "instances": [
+  {
+   "id": 1,
+   "box": [
+    351.4,
+    88.5,
+    527.3,
+    260.6
+   ],
+   "source": "grounding_dino",
+   "det_score": 0.475,
+   "sam_iou_pred": 0.985,
+   "area": 21966
+  },
+  {
+   "id": 2,
+   "box": [
+    429.0,
+    263.9,
+    607.5,
+    403.4
+   ],
+   "source": "grounding_dino",
+   "det_score": 0.383,
+   "sam_iou_pred": 0.984,
+   "area": 18023
+  },
+  {
+   "id": 3,
+   "box": [
+    0.0,
+    335.0,
+    295.0,
+    515.0
+   ],
+   "source": "manual",
+   "det_score": 1.0,
+   "sam_iou_pred": 0.988,
+   "area": 36370
+  }
+ ]
+}

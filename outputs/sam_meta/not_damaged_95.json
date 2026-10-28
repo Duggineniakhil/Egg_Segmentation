@@ -1,0 +1,19 @@
+{
+ "image": "not_damaged_95.jpg",
+ "manual_fix": null,
+ "instances": [
+  {
+   "id": 1,
+   "box": [
+    166.0,
+    40.0,
+    443.7,
+    258.7
+   ],
+   "source": "grounding_dino",
+   "det_score": 0.899,
+   "sam_iou_pred": 0.99,
+   "area": 45659
+  }
+ ]
+}

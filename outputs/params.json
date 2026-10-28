@@ -1,0 +1,59 @@
+{
+ "gd_model": "IDEA-Research/grounding-dino-base",
+ "text_prompt": "an egg.",
+ "box_threshold": 0.35,
+ "text_threshold": 0.25,
+ "nms_iou": 0.5,
+ "min_box_area_frac": 0.002,
+ "contain_thr": 0.9,
+ "min_component_frac": 0.15,
+ "sam_type": "vit_h",
+ "manual_prompts": {
+  "not_damaged_105": {
+   "add": [
+    {
+     "box": [
+      20,
+      360,
+      255,
+      505
+     ]
+    }
+   ]
+  },
+  "not_damaged_134": {
+   "add": [
+    {
+     "box": [
+      0,
+      335,
+      295,
+      515
+     ]
+    }
+   ]
+  },
+  "not_damaged_117": {
+   "replace": [
+    {
+     "box": [
+      245,
+      105,
+      525,
+      295
+     ],
+     "pos": [
+      [
+       300,
+       195
+      ],
+      [
+       470,
+       185
+      ]
+     ]
+    }
+   ]
+  }
+ }
+}

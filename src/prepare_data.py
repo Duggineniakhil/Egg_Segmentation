@@ -7,10 +7,12 @@ original names (e.g. not_damaged_101.jpg). The dev/eval split is made later by
 make_split.py.
 
 Usage:
-    python src/prepare_data.py                # download + extract + flatten
-    python src/prepare_data.py --zip path.zip # use an already downloaded zip
+    python src/prepare_data.py                     # Google Drive zip mirror (no key needed)
+    python src/prepare_data.py --zip path.zip      # use an already downloaded zip
+    python src/prepare_data.py --source roboflow   # Roboflow API (needs ROBOFLOW_API_KEY env var)
 """
 import argparse
+import os
 import re
 import shutil
 import urllib.request
@@ -28,6 +30,14 @@ def download(dst: Path) -> None:
     dst.parent.mkdir(parents=True, exist_ok=True)
     print(f"Downloading dataset to {dst} ...")
     urllib.request.urlretrieve(DRIVE_URL, dst)
+
+
+def download_roboflow(out_dir: Path) -> None:
+    from roboflow import Roboflow  # pip install roboflow
+
+    rf = Roboflow(api_key=os.environ["ROBOFLOW_API_KEY"])
+    project = rf.workspace("fire-bf7qe").project("egg-vzhtr")
+    project.version(1).download("folder", location=str(out_dir), overwrite=True)
 
 
 def extract(zip_path: Path, out_dir: Path) -> None:
@@ -51,13 +61,17 @@ def flatten(raw_dir: Path, img_dir: Path) -> int:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--source", choices=["drive", "roboflow"], default="drive")
     ap.add_argument("--zip", type=Path, default=DATA / "raw_download" / "dataset.zip")
     args = ap.parse_args()
 
-    if not args.zip.exists():
-        download(args.zip)
     raw_dir = DATA / "raw"
-    extract(args.zip, raw_dir)
+    if args.source == "roboflow":
+        download_roboflow(raw_dir)
+    else:
+        if not args.zip.exists():
+            download(args.zip)
+        extract(args.zip, raw_dir)
     n = flatten(raw_dir, DATA / "images")
     print(f"{n} images written to {DATA / 'images'}")
 

@@ -10,3 +10,4 @@ tqdm>=4.66
 torch>=2.2
 ultralytics>=8.3   # SAM / SAM2 / MobileSAM and YOLO-World wrappers
 yt-dlp>=2024.1     # Task 4 video download
+roboflow>=1.1      # optional: prepare_data.py --source roboflow

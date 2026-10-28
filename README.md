@@ -21,6 +21,8 @@ python -m venv .venv
 pip install -r requirements.txt
 python src/prepare_data.py      # downloads + flattens images into data/images/
 ```
+To pull the data through the Roboflow API instead, set `ROBOFLOW_API_KEY` and run
+`python src/prepare_data.py --source roboflow`.
 
 ## Repository layout
 ```
@@ -32,7 +34,17 @@ report/       PDF report
 ```
 
 ## Running the tasks
-_Commands are added here as each task is implemented._
+
+### Task 1: SAM pseudo ground truth (GPU, Kaggle)
+[`notebooks/task1_sam_kaggle.ipynb`](notebooks/task1_sam_kaggle.ipynb) uses Grounding DINO (`"an egg."`)
+boxes as prompts for SAM ViT-H.
+1. On Kaggle: **New Notebook → File → Import Notebook**, then upload the notebook.
+2. Settings: **Accelerator = GPU T4**, **Internet = On**. Under **Add-ons → Secrets**, add `ROBOFLOW_API_KEY`.
+3. Run all, look over the review sheets, and add any fixes to `MANUAL_BOXES`, then re-run.
+4. Download `sam_outputs.zip` and unzip it into `outputs/`.
+
+Masks are saved as `outputs/sam_masks/<image>.png`. Each is an instance label map: 0 is background and 1..N
+are the eggs, so the binary mask is `label > 0`. The masks are committed to the repo, so later tasks don't need a GPU.
 
 ## AI tool disclosure
 _To be completed._

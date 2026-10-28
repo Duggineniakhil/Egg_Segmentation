@@ -1,0 +1,40 @@
+{
+ "image": "not_damaged_117.jpg",
+ "manual_fix": {
+  "replace": [
+   {
+    "box": [
+     245,
+     105,
+     525,
+     295
+    ],
+    "pos": [
+     [
+      300,
+      195
+     ],
+     [
+      470,
+      185
+     ]
+    ]
+   }
+  ]
+ },
+ "instances": [
+  {
+   "id": 1,
+   "box": [
+    245.0,
+    105.0,
+    525.0,
+    295.0
+   ],
+   "source": "manual",
+   "det_score": 1.0,
+   "sam_iou_pred": 0.968,
+   "area": 28277
+  }
+ ]
+}
