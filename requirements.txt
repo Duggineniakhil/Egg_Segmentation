@@ -2,12 +2,13 @@ numpy>=1.26
 opencv-python>=4.9
 scikit-image>=0.22
 scikit-learn>=1.4
+transformers>=4.40  # CLIP embeddings for the scene-grouped split
 scipy>=1.11
 matplotlib>=3.8
 pandas>=2.1
 pyyaml>=6.0
 tqdm>=4.66
 torch>=2.2
-ultralytics>=8.3   # SAM / SAM2 / MobileSAM and YOLO-World wrappers
+# Task 1 (SAM) runs on Kaggle; its notebook installs segment-anything itself
 yt-dlp>=2024.1     # Task 4 video download
 roboflow>=1.1      # optional: prepare_data.py --source roboflow

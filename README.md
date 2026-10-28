@@ -46,5 +46,27 @@ boxes as prompts for SAM ViT-H.
 Masks are saved as `outputs/sam_masks/<image>.png`. Each is an instance label map: 0 is background and 1..N
 are the eggs, so the binary mask is `label > 0`. The masks are committed to the repo, so later tasks don't need a GPU.
 
+### Task 2a: leakage-aware dev/eval split
+```bash
+python src/make_split.py
+```
+The images are photos of a few dozen physical scenes, so the split is made by scene, not by image:
+1. The eggs are inpainted out using the SAM masks.
+2. CLIP ViT-B/32 embeds each background.
+3. Agglomerative clustering (cosine distance 0.15) groups them into scenes, and scenes confirmed by eye that clustering
+   split apart are merged by hand (`SCENE_OVERRIDES`).
+4. Whole scenes are assigned to eval.
+
+The result goes to `data/splits.json`, and `outputs/split/scene_groups.jpg` shows the groups.
+
+| | dev | eval |
+|---|---|---|
+| images | 87 | 23 |
+| scenes | 19 | 4 (steel pot, orange tub, striped cloth, green door) |
+| multi-egg images | 13.8% | 21.7% |
+
+Leakage check: an eval image's mean highest CLIP similarity to any dev image is **0.859**, against **0.911** for a
+random image-level split.
+
 ## AI tool disclosure
 _To be completed._
