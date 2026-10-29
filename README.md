@@ -108,18 +108,21 @@ python src/track_video.py --video data/video/egg_video.mp4 --config configs/vide
 ```
 * **Detection:** the Task 2 algorithm with video settings (`configs/video_v1.yaml`): smaller size limits, since the
   eggs cover about 0.5% of a frame, and no forced egg, so the title cards stay empty.
-* **Tracking ([`src/track_video.py`](src/track_video.py)):** a SORT-style tracker.
-  * A Kalman filter per egg plus Hungarian matching on distance and box IoU.
-  * Tracks are confirmed after 3 hits.
-  * A hidden egg coasts for up to 2 s, for hand occlusions.
-  * An egg that reappears takes over the ID of a nearby hidden or lost egg.
-  * Matches are limited by the egg's typical size, by vertical movement (a jump straight down is the egg's
-    reflection on the glossy table) and by area.
-  * Reflections and duplicates can't start new tracks.
-  * At a scene change, all tracks are dropped.
-  * **Known limitation:** at about 30 s, one hand covers both identical eggs at once. Which egg is which afterwards
-    can't be verified from the video; the tracker decides by distance.
-* **Outputs:** an annotated video, `tracks.csv` and `summary.json` in `outputs/video/`.
+* **Tracking ([`src/track_video.py`](src/track_video.py)):** each egg keeps one ID for the whole video.
+  * **Visible egg:** a Kalman filter predicts its next position. Detections are matched with Hungarian
+    assignment on distance minus box IoU, limited by the egg's typical size, its vertical movement and its area.
+  * **Hidden or held egg:** the track is kept. Its estimate is moved by the optical flow of whatever covers it,
+    so under a hand it is carried along with the hand. It then locks onto the visible white part of the egg in
+    the hand. The label stays on the egg, with a dashed box, at the estimated position.
+  * **Recovery:** a hidden egg is matched to a whole-egg detection near its estimate, never to another egg or
+    to a reflection. New IDs are only handed out when no hidden egg can explain the detection.
+  * **Validation:** `python src/check_tracks.py outputs/video/tracks.csv` checks the IDs against checkpoints
+    written down by watching the video frame by frame. That includes the 30 s handover, where one hand swaps
+    which egg it holds. All parameters are in `PARAMS`, with overrides in the config's `tracker:` section.
+  * **Limitation:** the eggs look identical, so identity comes from motion continuity alone. Recoveries that
+    aren't backed by it are flagged `low_confidence` in `tracking_log.csv`.
+* **Outputs:** an annotated video, `tracks.csv`, `tracking_log.csv`, `summary.json` and `debug_frames/` in
+  `outputs/video/`. Old-vs-new comparison frames are in `outputs/tracking_debug/`.
 
 ## AI tool disclosure
 _To be completed._

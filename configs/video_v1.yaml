@@ -4,3 +4,8 @@ change: "Video adaptation: eggs are ~0.5% of a 640x360 frame (dataset: 2.6-38%),
 why: "size limits from the image dataset would reject every video egg; forcing >=1 egg would invent eggs on text-only frames"
 pipeline:
   sweep: {min_area_frac: 0.002, max_area_frac: 0.08, min_eggs: 0, max_eggs: 4}
+tracker:            # overrides of track_video.PARAMS (all other values: defaults in the code)
+  REID_GATE: 1.5
+  RECOVER_AREA: [0.65, 1.6]
+  WHITE_GATE: 1.0
+  MAX_HIDDEN: 720
