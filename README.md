@@ -7,6 +7,12 @@ CV intern assignment covering:
 4. **Task 4**: per-egg tracking on a YouTube video.
 
 The full write-up is in [`report/report.pdf`](report/report.pdf).
+**Tracking output video:** [tracked_eggs.mp4 on Google Drive](https://drive.google.com/file/d/1-TJ6u60Hdvg0gUGsSb1UORi55hf84DDj/view?usp=sharing).
+
+To rebuild the report from `report/report.md` (needs Chrome or Edge for the PDF step):
+```bash
+python src/build_report.py --drive-link "https://drive.google.com/file/d/1-TJ6u60Hdvg0gUGsSb1UORi55hf84DDj/view?usp=sharing" --author "Duggineni Akhil"
+```
 
 ## Dataset
 [Roboflow "egg" v1](https://universe.roboflow.com/fire-bf7qe/egg-vzhtr/dataset/1) (CC BY 4.0):
