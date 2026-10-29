@@ -1,0 +1,92 @@
+{
+ "outputs/video/v2/tracks.csv": {
+  "all": {
+   "gt": 365,
+   "matched": 357,
+   "fn": 8,
+   "idsw": 0,
+   "motp": 0.009,
+   "fp": 6,
+   "mota": 0.962,
+   "idf1": 0.953,
+   "idtp": 357,
+   "pairing": {
+    "A": 1,
+    "B": 2
+   },
+   "frames_with_wrong_id": 0,
+   "first_wrong_frame": null
+  },
+  "on_table": {
+   "gt": 324,
+   "matched": 322,
+   "fn": 2,
+   "idsw": 0,
+   "motp": 0.002,
+   "idf1": 0.997,
+   "idtp": 322,
+   "pairing": {
+    "A": 1,
+    "B": 2
+   }
+  },
+  "held": {
+   "gt": 41,
+   "matched": 35,
+   "fn": 6,
+   "idsw": 0,
+   "motp": 0.072,
+   "idf1": 0.921,
+   "idtp": 35,
+   "pairing": {
+    "A": 1,
+    "B": 2
+   }
+  }
+ },
+ "outputs/video/old_tracker_tracks.csv": {
+  "all": {
+   "gt": 365,
+   "matched": 332,
+   "fn": 33,
+   "idsw": 2,
+   "motp": 0.009,
+   "fp": 11,
+   "mota": 0.874,
+   "idf1": 0.617,
+   "idtp": 223,
+   "pairing": {
+    "A": 1,
+    "B": 2
+   },
+   "frames_with_wrong_id": 109,
+   "first_wrong_frame": 754
+  },
+  "on_table": {
+   "gt": 324,
+   "matched": 319,
+   "fn": 5,
+   "idsw": 2,
+   "motp": 0.002,
+   "idf1": 0.653,
+   "idtp": 210,
+   "pairing": {
+    "A": 1,
+    "B": 2
+   }
+  },
+  "held": {
+   "gt": 41,
+   "matched": 13,
+   "fn": 28,
+   "idsw": 0,
+   "motp": 0.175,
+   "idf1": 0.481,
+   "idtp": 13,
+   "pairing": {
+    "A": 1,
+    "B": 2
+   }
+  }
+ }
+}
