@@ -1,0 +1,65 @@
+{
+ "dev": {
+  "miou": 0.7847,
+  "mdice": 0.8363,
+  "mprecision": 0.8951,
+  "mrecall": 0.8249,
+  "mboundary_f1": 0.7018,
+  "count_acc": 0.977,
+  "inst_precision": 0.8972,
+  "inst_recall": 0.8727,
+  "inst_f1": 0.8848,
+  "mhd95_px": 62.0017,
+  "n_images": 87,
+  "n_eggs": 110,
+  "categories": {
+   "good": 59,
+   "under-segmented": 17,
+   "missed / wrong object": 7,
+   "leak": 3,
+   "mixed": 1
+  }
+ },
+ "eval": {
+  "miou": 0.7884,
+  "mdice": 0.8542,
+  "mprecision": 0.9004,
+  "mrecall": 0.8337,
+  "mboundary_f1": 0.6348,
+  "count_acc": 1.0,
+  "inst_precision": 0.9286,
+  "inst_recall": 0.9286,
+  "inst_f1": 0.9286,
+  "mhd95_px": 48.2056,
+  "n_images": 23,
+  "n_eggs": 28,
+  "categories": {
+   "good": 14,
+   "under-segmented": 5,
+   "leak": 2,
+   "mixed": 1,
+   "missed / wrong object": 1
+  }
+ },
+ "all": {
+  "miou": 0.7855,
+  "mdice": 0.84,
+  "mprecision": 0.8962,
+  "mrecall": 0.8268,
+  "mboundary_f1": 0.6878,
+  "count_acc": 0.9818,
+  "inst_precision": 0.9037,
+  "inst_recall": 0.8841,
+  "inst_f1": 0.8938,
+  "mhd95_px": 59.1171,
+  "n_images": 110,
+  "n_eggs": 138,
+  "categories": {
+   "good": 73,
+   "under-segmented": 22,
+   "missed / wrong object": 8,
+   "leak": 5,
+   "mixed": 2
+  }
+ }
+}

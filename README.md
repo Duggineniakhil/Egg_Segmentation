@@ -88,5 +88,15 @@ are in `outputs/experiments/<trial>/worst.jpg`. The algorithm ([`src/classical_s
 
 Dev mIoU went from 0.339 (gray + Otsu) to **0.785**.
 
+### Task 3: evaluation and analysis
+```bash
+python src/run_experiment.py configs/t16_nest_cap4.yaml --split eval --save-masks   # final model, eval, run once
+python src/run_experiment.py configs/t16_nest_cap4.yaml --save-masks --no-log       # dev masks for the analysis
+python src/evaluate.py
+```
+On held-out eval, the final algorithm scores **0.788 mIoU**, 0.854 Dice, 0.929 instance F1 and 100% egg-count
+accuracy (dev: 0.785 mIoU). The write-up is [`outputs/eval/analysis.md`](outputs/eval/analysis.md), and the plots
+and failure galleries are in `outputs/eval/`.
+
 ## AI tool disclosure
 _To be completed._

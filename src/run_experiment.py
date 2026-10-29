@@ -62,6 +62,7 @@ def main():
     ap.add_argument("--split", choices=["dev", "eval"], default="dev")
     ap.add_argument("--decision", default="", help="keep / discard, filled into the log")
     ap.add_argument("--save-masks", action="store_true", help="write predicted label maps to outputs/cv_masks/")
+    ap.add_argument("--no-log", action="store_true", help="don't append to the experiment log (re-runs)")
     args = ap.parse_args()
 
     cfg = load_config(args.config)
@@ -78,7 +79,7 @@ def main():
         rows.append({"image": stem, **image_metrics(gt, pred)})
         if args.save_masks:
             (ROOT / "outputs" / "cv_masks").mkdir(parents=True, exist_ok=True)
-            cv2.imwrite(str(ROOT / "outputs" / "cv_masks" / f"{stem}.png"), pred)
+            cv2.imwrite(str(ROOT / "outputs" / "cv_masks" / f"{stem}.png"), pred.astype(np.uint8))
 
     df = pd.DataFrame(rows)
     df.to_csv(out / "per_image.csv", index=False)
@@ -87,7 +88,7 @@ def main():
     print(f"{cfg['name']} [{args.split}, {len(stems)} images]")
     print("  " + "  ".join(f"{k}={v:.3f}" for k, v in s.items()))
 
-    if args.split == "dev":
+    if args.split == "dev" and not args.no_log:
         log = EXP_DIR / "log.csv"
         new = not log.exists()
         with open(log, "a", newline="") as f:
