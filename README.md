@@ -86,7 +86,8 @@ are in `outputs/experiments/<trial>/worst.jpg`. The algorithm ([`src/classical_s
    egg-like (at most 4× bigger).
 5. GrabCut boundary refinement with a 30 px band.
 
-Dev mIoU went from 0.339 (gray + Otsu) to **0.785**.
+Dev mIoU went from 0.339 (gray + Otsu) to **0.786**. The log shows 0.785 for the final trial, which ran before
+GrabCut's random initialisation was seeded per image.
 
 ### Task 3: evaluation and analysis
 ```bash
@@ -94,9 +95,21 @@ python src/run_experiment.py configs/t16_nest_cap4.yaml --split eval --save-mask
 python src/run_experiment.py configs/t16_nest_cap4.yaml --save-masks --no-log       # dev masks for the analysis
 python src/evaluate.py
 ```
-On held-out eval, the final algorithm scores **0.788 mIoU**, 0.854 Dice, 0.929 instance F1 and 100% egg-count
-accuracy (dev: 0.785 mIoU). The write-up is [`outputs/eval/analysis.md`](outputs/eval/analysis.md), and the plots
+On held-out eval, the final algorithm scores **0.789 mIoU**, 0.855 Dice, 0.929 instance F1 and 100% egg-count
+accuracy (dev: 0.786 mIoU). The write-up is [`outputs/eval/analysis.md`](outputs/eval/analysis.md), and the plots
 and failure galleries are in `outputs/eval/`.
+
+**Robustness** (section 6 of the analysis):
+```bash
+python src/ablation.py      # remove one component at a time (dev) -> outputs/ablation/
+python src/stats.py         # scene-level bootstrap CIs and scene-grouped folds -> outputs/stats/
+python src/runtime.py       # per-image runtime per stage, 1 CPU thread
+```
+* **Eval mIoU 0.789, 95% CI [0.683, 0.852]**, resampling whole scenes. Across 5 scene-grouped folds of all
+  110 images it is 0.787 ± 0.070.
+* **Ablation:** the candidate score (−0.270 when removed) and the smoothness channel (−0.085) matter most. The
+  dark-polarity sweep adds nothing (+0.003 when removed).
+* **Runtime:** 4.4 s per image on one CPU thread, against 2.6 s per image for SAM on a T4 GPU.
 
 ### Task 4: egg tracking in video
 [`notebooks/task4_tracking_kaggle.ipynb`](notebooks/task4_tracking_kaggle.ipynb) runs it on Kaggle. It needs

@@ -1,0 +1,24 @@
+scene,split,n,miou
+"frames 20,24,44",dev,3,0.369
+"frames 31,149,150",dev,3,0.494
+white_egg_tray,dev,3,0.576
+better_health_bag,dev,7,0.581
+striped_cloth,eval,4,0.633
+"frames 107,122,126",dev,3,0.705
+"frames 10,11,12,13...",dev,5,0.723
+"frames 30,32",dev,2,0.741
+orange_tub,eval,7,0.769
+"frames 33,103,105,106...",dev,15,0.79
+"frames 1,2,25,102...",dev,9,0.794
+blue_lid,dev,2,0.8
+"frames 14,27,29,36...",dev,7,0.801
+green_door_hand,eval,2,0.822
+steel_pot,eval,10,0.858
+"frames 118,119,131,138",dev,4,0.88
+"frames 16,52,62",dev,3,0.914
+pink_bowl_cherry_jar,dev,6,0.943
+"frames 28,45",dev,2,0.959
+"frames 15,37,55,95",dev,4,0.968
+green_rug,dev,3,0.983
+"frames 100,101",dev,2,0.983
+"frames 17,18,19,43",dev,4,0.994

@@ -398,6 +398,7 @@ def _grabcut(img, label, iters, band, grow_limit=0):
     if not (gc == cv2.GC_FGD).any():
         return label
     bgd, fgd = np.zeros((1, 65), np.float64), np.zeros((1, 65), np.float64)
+    cv2.setRNGSeed(0)   # GrabCut's k-means init is random: seed per image so results don't depend on run order
     cv2.grabCut(img, gc, None, bgd, fgd, iters, cv2.GC_INIT_WITH_MASK)
     new_fg = fill_holes((gc == cv2.GC_FGD) | (gc == cv2.GC_PR_FGD))
     # give refined pixels to the nearest original instance

@@ -1,0 +1,18 @@
+{
+ "full pipeline": {
+  "mean_s": 4.359,
+  "median_s": 4.273,
+  "max_s": 7.358
+ },
+ "without GrabCut": {
+  "mean_s": 2.377,
+  "median_s": 2.311,
+  "max_s": 5.429
+ },
+ "without dark polarity": {
+  "mean_s": 3.841,
+  "median_s": 3.756,
+  "max_s": 6.238
+ },
+ "machine": "Intel64 Family 6 Model 186 Stepping 3, GenuineIntel, 1 thread, 20 images 640x640"
+}
