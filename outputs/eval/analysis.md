@@ -222,3 +222,67 @@ depends on *which scenes* are evaluated, not on tuning.
 The classical method needs no GPU and no model weights, and frames are independent, so it parallelizes across
 cores: the video tracking runs it on 4 Kaggle CPU cores. GrabCut is 45% of its time. The 24-level threshold sweep
 (×3 channels, plus one extra polarity) is most of the rest; fewer levels would be the first thing to cut for speed.
+
+
+## 7. A follow-up experiment after the frozen evaluation: ellipse completion (v2)
+
+The model above (v1, `t16_nest_cap4`) was frozen and evaluated on eval once. Afterwards, I tried to fix its
+largest failure: eggs cut along the lit/shadow line, 38% of all lost IoU. **All design work used dev only**, and v2
+was then run on eval **once**. Because this came after eval had already been seen, the v2 eval number is
+reported separately and is **not** the submitted result.
+
+**Diagnosis (dev):** for the 31 dev eggs cut by a boundary inside the true egg, only **4%** of the cut's outline
+points lie on a Canny edge, against 25% of the real outline. The soft shading gradient makes few edges, while the
+egg's silhouette makes strong ones.
+
+**Method:** before GrabCut, each selected blob is "completed":
+1. **Support points:** take the outline points whose gradient is strong *for this blob* (≥ 0.3 × the 90th
+   percentile along its own outline).
+2. **Fit:** fit an ellipse to those points.
+3. **Add:** add the ellipse to the blob, keeping only added pixels about as colourless as the egg.
+4. **Guards:** at least 20 support points, the ellipse must contain the blob, growth ≤ 2.5×, aspect ratio ≤ 2.5,
+   no overlap with another egg.
+
+GrabCut then refines the completed egg.
+
+| Trial (dev) | dev mIoU | boundary F1 | instance F1 | decision |
+|---|---|---|---|---|
+| t16 (v1) | 0.786 | 0.699 | 0.885 | frozen v1 |
+| t17a: support = Canny pixels | 0.791 | 0.700 | 0.885 | discard: fires on only 24/87 images, because the whole outline is faint on pale backgrounds |
+| t17b: support = relative gradient | 0.808 | 0.730 | 0.903 | keep |
+| t17c: + chroma limit on added pixels | **0.809** | **0.732** | **0.903** | v2: 3 images worse instead of 4 (fixes leaves #10, rug #162) |
+| t17b without GrabCut | 0.754 | 0.472 | 0.866 | completion and GrabCut are complementary |
+
+![v2 on dev](v2_dev_changes.jpg)
+
+**Eval (run once):**
+
+| | mIoU | Dice | boundary F1 | instance F1 |
+|---|---|---|---|---|
+| v1 | **0.789** | 0.855 | 0.632 | **0.929** |
+| v2 | 0.786 | 0.852 | 0.624 | 0.893 |
+
+| Eval scene | v1 | v2 |
+|---|---|---|
+| green door + hand | 0.822 | **0.886** |
+| striped cloth | 0.633 | 0.645 |
+| orange tub | 0.769 | 0.777 |
+| steel pot (9 images) | **0.858** | 0.829 |
+
+![v2 on eval](v2_eval_changes.jpg)
+
+**Interpretation:**
+- **The fix works where it was aimed.** v2 improves the 3 eval scenes that have lit/shadow splits (#160: 0.65 →
+  0.78).
+- **The steel pot gets worse.** There, the completed ellipse extends onto the bright, colourless reflections and
+  bubbles of the water next to the egg. The chroma limit can't tell them apart from a shadowed egg side. #145 and
+  #135 fall below IoU 0.5, which is the instance-F1 drop.
+- **Dev didn't predict this.** Dev has no boiling-water scene with reflections like these, so the side effect was
+  invisible there.
+- **Overall the difference is within noise.** The eval mean is unchanged (0.786 vs 0.789, far inside the ±0.08 CI).
+
+**Decision:** v1 stays the submitted model. Tuning v2 against the steel-pot images would mean designing on eval. A
+fair next step is a reflection test (reflections are much brighter than the egg and form specular highlights),
+developed on scenes like it outside this eval set. This experiment also shows why the scene-grouped split
+matters: a random split would have put steel-pot images in dev, the guard would have been tuned on them, and the
+eval number would have looked better than the method deserves.

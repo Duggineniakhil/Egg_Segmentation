@@ -1,0 +1,6 @@
+name: t17a_complete_canny
+base: t16_nest_cap4
+change: "(v2, after the v1 eval run) Ellipse completion before GrabCut: fit an ellipse to the outline points of each selected blob that lie on a Canny edge, add it to the blob (growth <= 2.5x)"
+why: "38% of lost IoU is eggs split along the lit/shadow line. Diagnosis on dev: only 4% of the cut's points lie on a Canny edge vs 25% of the real outline, so an ellipse through the edge-supported points should recover the shadowed half"
+pipeline:
+  refine: {complete: true, complete_mode: canny, complete_max_growth: 2.5}

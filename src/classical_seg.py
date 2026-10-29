@@ -33,7 +33,11 @@ DEFAULTS = {
               "quality": "edge_support", "shape_lo": 0.75, "contrast_full": 50, "border_penalty": 0.6,
               "nest_ratio": 0.0},
     "split": {"type": "none", "min_distance": 25, "peak_rel": 0.6},
-    "refine": {"grabcut_iters": 0, "band": 15, "ellipse": False},
+    "refine": {"grabcut_iters": 0, "band": 15, "ellipse": False,
+               # ellipse completion (v2): fit an ellipse to the edge-supported part of each blob's outline
+               "complete": False, "complete_canny_sigma": 0.6, "complete_edge_px": 2, "complete_min_pts": 20,
+               "complete_min_support": 0.2, "complete_max_growth": 2.0, "complete_max_aspect": 2.5,
+               "complete_mode": "canny", "complete_rel": 0.3, "complete_chroma": 0},
 }
 
 
@@ -337,7 +341,73 @@ def split_touching(label, c):
     return ws.astype(np.uint16)
 
 
+def complete_ellipses(img, label, c):
+    """Ellipse completion for eggs split by their own shading (v2).
+
+    Under one-sided light the sweep often isolates only the lit side of an egg. The cut between lit and
+    shadowed side is a soft gradient: on dev only 4% of its points lie on a Canny edge, against 25% of the
+    real outline. So fit an ellipse to the outline points that DO sit on an edge, and add it to the blob.
+    complete_mode "canny": edge = Canny pixel nearby. "relative": edge = gradient >= complete_rel x the 90th
+    percentile along this blob's own outline (works when the whole outline is faint).
+    Guards: enough supported points, ellipse must contain the blob, grow it at most complete_max_growth
+    times, have an egg-like aspect ratio, and not overlap another egg.
+    """
+    k = 2 * c["complete_edge_px"] + 1
+    if c["complete_mode"] == "relative":
+        # gradient magnitude, max-pooled over a few px so points just inside the edge still see it
+        g = cv2.GaussianBlur(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), (5, 5), 0).astype(np.float32)
+        mag = cv2.dilate(np.hypot(cv2.Sobel(g, cv2.CV_32F, 1, 0), cv2.Sobel(g, cv2.CV_32F, 0, 1)),
+                         np.ones((k, k), np.uint8))
+    else:
+        gray = cv2.GaussianBlur(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), (7, 7), 0)
+        near = cv2.dilate(auto_canny(gray, c["complete_canny_sigma"]), np.ones((k, k), np.uint8)) > 0
+    h, w = label.shape
+    out = label.copy()
+    for i in np.unique(label)[1:]:
+        m = (label == i).astype(np.uint8)
+        cnt = max(cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0], key=cv2.contourArea)[:, 0]
+        inner = (cnt[:, 0] > 1) & (cnt[:, 0] < w - 2) & (cnt[:, 1] > 1) & (cnt[:, 1] < h - 2)
+        if c["complete_mode"] == "relative":
+            # an edge "strong for this egg": the real outline beats the soft lit/shadow cut even when the
+            # whole outline is faint (white egg on a pale background), where a fixed Canny threshold fails
+            gv = mag[cnt[:, 1], cnt[:, 0]]
+            ref = np.percentile(gv[inner], 90) if inner.any() else 0
+            sup = inner & (gv >= c["complete_rel"] * ref)
+        else:
+            sup = inner & near[cnt[:, 1], cnt[:, 0]]
+        if sup.sum() < c["complete_min_pts"] or sup.sum() < c["complete_min_support"] * inner.sum():
+            continue
+        (cx, cy), (a, b), ang = cv2.fitEllipse(cnt[sup].astype(np.int32))
+        if min(a, b) <= 0 or max(a, b) / min(a, b) > c["complete_max_aspect"]:
+            continue
+        e = np.zeros_like(m)
+        cv2.ellipse(e, ((cx, cy), (a, b), ang), 1, cv2.FILLED)
+        e = e > 0
+        blob = m > 0
+        if (e & blob).sum() < 0.9 * blob.sum() or (e | blob).sum() > c["complete_max_growth"] * blob.sum():
+            continue
+        add = e & (label == 0) & (out == 0)
+        if c["complete_chroma"]:
+            # keep only added pixels about as colourless as the egg: a shadowed egg side is still neutral,
+            # an overshoot onto leaves, a pink bowl or a patterned rug is not
+            chroma = _chroma(img)
+            lim = max(c["complete_chroma"], 1.5 * np.percentile(chroma[blob], 90))
+            add &= chroma <= lim
+            n, lab = cv2.connectedComponents((add | blob).astype(np.uint8), connectivity=8)
+            keep = np.unique(lab[blob])
+            add &= np.isin(lab, keep[keep > 0])
+        out[add] = i
+    return out
+
+
+def _chroma(img):
+    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB).astype(np.float32)
+    return np.hypot(lab[..., 1] - 128, lab[..., 2] - 128)
+
+
 def refine(img, label, c):
+    if c.get("complete") and label.max():
+        label = complete_ellipses(img, label, c)
     if c["grabcut_iters"] and label.max():
         before = label
         label = _grabcut(img, label, c["grabcut_iters"], c["band"], c.get("grow_limit", 0))

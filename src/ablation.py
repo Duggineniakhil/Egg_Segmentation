@@ -43,6 +43,30 @@ VARIANTS = {
     "no_blur": ("Gaussian blur", {"blur": {"type": "none"}}),
     "no_forced_egg": ("at-least-one-egg rule", {"sweep": {"min_eggs": 0}}),
 }
+# v2 candidates (additions, not removals): run with --variants full v2_...
+EXTRA = {
+    "v2_complete": ("+ ellipse completion", {"refine": {"complete": True}}),
+    "v2_complete_g15": ("+ ellipse completion, max growth 1.5", {"refine": {"complete": True, "complete_max_growth": 1.5}}),
+    "v2_complete_g25": ("+ ellipse completion, max growth 2.5", {"refine": {"complete": True, "complete_max_growth": 2.5}}),
+    "v2_complete_sup35": ("+ ellipse completion, >=35% outline support", {"refine": {"complete": True, "complete_min_support": 0.35}}),
+}
+EXTRA.update({
+    "v2_rel03": ("+ ellipse completion (relative edges 0.3)",
+                 {"refine": {"complete": True, "complete_mode": "relative", "complete_rel": 0.3, "complete_max_growth": 2.5}}),
+    "v2_rel05": ("+ ellipse completion (relative edges 0.5)",
+                 {"refine": {"complete": True, "complete_mode": "relative", "complete_rel": 0.5, "complete_max_growth": 2.5}}),
+    "v2_rel03_g2": ("+ ellipse completion (relative 0.3, growth 2.0)",
+                    {"refine": {"complete": True, "complete_mode": "relative", "complete_rel": 0.3, "complete_max_growth": 2.0}}),
+    "v2_rel03_nogc": ("+ ellipse completion (relative 0.3), no GrabCut",
+                      {"refine": {"complete": True, "complete_mode": "relative", "complete_rel": 0.3,
+                                  "complete_max_growth": 2.5, "grabcut_iters": 0}}),
+})
+_V2 = {"complete": True, "complete_mode": "relative", "complete_rel": 0.3, "complete_max_growth": 2.5}
+EXTRA.update({
+    "v2_rel03_chroma8": ("+ completion, added pixels chroma-limited (>=8)", {"refine": {**_V2, "complete_chroma": 8}}),
+    "v2_rel03_chroma12": ("+ completion, added pixels chroma-limited (>=12)", {"refine": {**_V2, "complete_chroma": 12}}),
+})
+VARIANTS_ALL = {**VARIANTS, **EXTRA}
 
 _PIPES = None
 
@@ -50,7 +74,7 @@ _PIPES = None
 def _init():
     global _PIPES
     base = load_config(FINAL)["pipeline"]
-    _PIPES = {k: _merge(base, ov) for k, (_, ov) in VARIANTS.items()}
+    _PIPES = {k: _merge(base, ov) for k, (_, ov) in VARIANTS_ALL.items()}
 
 
 def _run(job):
@@ -124,7 +148,7 @@ def main():
         d = df[df.variant == v]
         s = summarize(d.to_dict("records"))
         paired = d.set_index("image").iou.reindex(full.index) - full
-        table.append({"variant": v, "removed": VARIANTS[v][0], **{k: round(x, 4) for k, x in s.items()},
+        table.append({"variant": v, "removed": VARIANTS_ALL[v][0], **{k: round(x, 4) for k, x in s.items()},
                       "delta_miou": round(s["miou"] - full.mean(), 4),
                       "images_worse": int((paired < -0.05).sum()), "images_better": int((paired > 0.05).sum())})
     t = pd.DataFrame(table)

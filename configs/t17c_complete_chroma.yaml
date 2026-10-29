@@ -1,0 +1,6 @@
+name: t17c_complete_chroma
+base: t17b_complete_relative
+change: "Completed pixels must be about as colourless as the egg (chroma <= max(12, 1.5 x the blob's 90th-percentile chroma))"
+why: "t17b's 4 worse images: the ellipse overshoots onto leaves (#10), a patterned rug (#162), a pink bowl (#22), a pale wall (#158); a shadowed egg side is still neutral, most overshoots are not"
+pipeline:
+  refine: {complete_chroma: 12}

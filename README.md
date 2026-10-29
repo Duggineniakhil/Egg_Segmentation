@@ -111,6 +111,13 @@ python src/runtime.py       # per-image runtime per stage, 1 CPU thread
   dark-polarity sweep adds nothing (+0.003 when removed).
 * **Runtime:** 4.4 s per image on one CPU thread, against 2.6 s per image for SAM on a T4 GPU.
 
+**v2 experiment** (section 7 of the analysis): ellipse completion fitted to the edge-supported outline points,
+for eggs cut along their lit/shadow line (`configs/t17c_complete_chroma.yaml`).
+* **Dev:** 0.786 → 0.809 mIoU.
+* **Eval (run once, after v1's evaluation):** 0.786 vs 0.789. It helps 3 of the 4 eval scenes but extends onto the
+  reflections in the steel pot.
+* **Decision:** v1 remains the submitted model.
+
 ### Task 4: egg tracking in video
 [`notebooks/task4_tracking_kaggle.ipynb`](notebooks/task4_tracking_kaggle.ipynb) runs it on Kaggle. It needs
 Internet On but no GPU. The notebook clones this repo, downloads the

@@ -1,0 +1,6 @@
+name: t17b_complete_relative
+base: t16_nest_cap4
+change: "Ellipse completion with relative edges: outline points whose gradient is >= 0.3 x the 90th percentile along that blob's own outline"
+why: "t17a fired on only 24/87 images: 20 of 33 under-segmented eggs have <20 outline points on any Canny edge (the whole outline is faint on pale backgrounds); within one blob the real outline is still stronger than the soft cut"
+pipeline:
+  refine: {complete: true, complete_mode: relative, complete_rel: 0.3, complete_max_growth: 2.5}
