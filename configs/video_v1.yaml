@@ -1,0 +1,6 @@
+name: video_v1
+base: t16_nest_cap4
+change: "Video adaptation: eggs are ~0.5% of a 640x360 frame (dataset: 2.6-38%), and title cards have no eggs"
+why: "size limits from the image dataset would reject every video egg; forcing >=1 egg would invent eggs on text-only frames"
+pipeline:
+  sweep: {min_area_frac: 0.002, max_area_frac: 0.08, min_eggs: 0, max_eggs: 4}

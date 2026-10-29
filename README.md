@@ -98,5 +98,22 @@ On held-out eval, the final algorithm scores **0.788 mIoU**, 0.854 Dice, 0.929 i
 accuracy (dev: 0.785 mIoU). The write-up is [`outputs/eval/analysis.md`](outputs/eval/analysis.md), and the plots
 and failure galleries are in `outputs/eval/`.
 
+### Task 4: egg tracking in video
+[`notebooks/task4_tracking_kaggle.ipynb`](notebooks/task4_tracking_kaggle.ipynb) runs it on Kaggle. It needs
+Internet On but no GPU. The notebook clones this repo, downloads the
+[video](https://www.youtube.com/watch?v=Y4JyV94y2_A) with yt-dlp, and produces the annotated video. To run locally:
+```bash
+yt-dlp -f 18 -o data/video/egg_video.mp4 "https://www.youtube.com/watch?v=Y4JyV94y2_A"
+python src/track_video.py --video data/video/egg_video.mp4 --config configs/video_v1.yaml
+```
+* **Detection:** the Task 2 algorithm with video settings (`configs/video_v1.yaml`): smaller size limits, since the
+  eggs cover about 0.5% of a frame, and no forced egg, so the title cards stay empty.
+* **Tracking ([`src/track_video.py`](src/track_video.py)):** a SORT-style tracker.
+  * A Kalman filter per egg plus Hungarian matching on distance and box IoU.
+  * Tracks are confirmed after 3 hits.
+  * A hidden egg coasts for up to 2 s, for hand occlusions.
+  * An egg that reappears takes over the ID of a nearby hidden or lost egg.
+* **Outputs:** an annotated video, `tracks.csv` and `summary.json` in `outputs/video/`.
+
 ## AI tool disclosure
 _To be completed._
