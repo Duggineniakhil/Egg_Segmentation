@@ -14,6 +14,12 @@ Steps
      - New tracks are confirmed after MIN_HITS consecutive detections, so one-frame blips get no ID.
      - Unmatched tracks coast on their prediction (velocity damped) for up to MAX_AGE frames,
        which covers a hand passing over or picking up an egg.
+     - Matches are gated on the egg's typical size (median of recent detections): centroid distance
+       <= GATE sizes, vertical move <= GATE_Y heights (eggs slide sideways on the table; straight
+       down is the reflection), area within AREA_RATIO. A missed egg coasts instead of jumping onto
+       its reflection, a fragment or the other egg.
+     - At a hard scene cut all tracks are dropped; a hidden egg is also dropped once the picture has
+       changed completely since it was last seen (gradual transitions such as the iris wipe).
      - A detection that overlaps a visible tracked egg, or sits in its reflection zone just below it
        (the table is glossy), may not start a new track.
      - A new track that confirms near the last seen position of an egg that is hidden (coasting)
@@ -39,11 +45,16 @@ ROOT = Path(__file__).resolve().parents[1]
 MIN_HITS = 3          # consecutive detections before a track gets an ID
 MAX_AGE = 48          # frames a track may coast without detections (2 s at 24 fps)
 REID_FRAMES = 240     # how long a lost track can be revived (10 s)
-GATE = 2.0            # max centroid distance, in units of the egg's size (box diagonal)
+GATE = 1.0            # max centroid distance, in units of the egg's size (box diagonal)
 REID_GATE = 5.0       # max distance for a new track to take over a hidden/lost egg's id
 VEL_DAMP = 0.5        # velocity decay per frame while coasting (a held egg moves with the hand, not on its own)
 TRAIL = 36            # trail length drawn in the output video
 REFLECT_H = 1.5       # reflection zone below a visible egg, in egg heights (glossy table)
+AREA_RATIO = 2.0      # a match may differ from the egg's typical area by at most this factor
+GATE_Y = 0.5          # max vertical move per frame, in egg heights: with the camera near table level, eggs on the
+                      # table move sideways in the image; a jump straight down is the reflection
+SIZE_WINDOW = 10      # detections used for an egg's typical size
+CUT_DIFF = 40.0       # mean abs. frame difference (0-255, on 64x36 thumbnails) that counts as a scene cut
 
 PALETTE = [(214, 120, 42), (52, 104, 235), (122, 175, 27), (0, 161, 237), (164, 123, 232), (0, 131, 0)]  # BGR
 
@@ -126,6 +137,7 @@ class Track:
         self.hits, self.miss = 1, 0
         self.confirmed = False
         self.trail = [det["c"]]
+        self.dims = [_dims(det)]     # recent (width, height, area): a stable size even when one blob is off
 
     def predict(self):
         if self.miss:                # coasting: let the egg slow down instead of flying off
@@ -139,10 +151,21 @@ class Track:
         self.hits += 1
         self.miss = 0
         self.trail = (self.trail + [det["c"]])[-TRAIL:]
+        self.dims = (self.dims + [_dims(det)])[-SIZE_WINDOW:]
+
+    def ref(self):
+        """Median width, height and area over recent detections."""
+        w, h, a = np.median(np.array(self.dims), axis=0)
+        return float(w), float(h), float(a)
 
     def size(self):
-        x0, y0, x1, y1 = self.det["box"]
-        return float(np.hypot(x1 - x0, y1 - y0))
+        w, h, _ = self.ref()
+        return float(np.hypot(w, h))
+
+
+def _dims(det):
+    x0, y0, x1, y1 = det["box"]
+    return (x1 - x0, y1 - y0, det["area"])
 
 
 def box_iou(a, b):
@@ -175,18 +198,43 @@ def shadow_of_egg(d, visible):
     return False
 
 
-def track(all_dets):
+def scene_cuts(video, start, n):
+    """Frames where the picture changes completely (title cards, wipes): all tracks are dropped there."""
+    cap = cv2.VideoCapture(str(video))
+    cap.set(cv2.CAP_PROP_POS_FRAMES, start)
+    cuts, thumbs = set(), []
+    for f in range(n):
+        ok, im = cap.read()
+        if not ok:
+            break
+        thumbs.append(cv2.resize(cv2.cvtColor(im, cv2.COLOR_BGR2GRAY), (64, 36), interpolation=cv2.INTER_AREA)
+                      .astype(np.float32))
+        if f and np.abs(thumbs[f] - thumbs[f - 1]).mean() > CUT_DIFF:
+            cuts.add(f)
+    return cuts, thumbs
+
+
+def track(all_dets, cuts=frozenset(), thumbs=None):
     tracks, lost, next_id, next_tmp = [], [], 1, -1
     per_frame = []
     for f, dets in enumerate(all_dets):
+        if f in cuts:            # new shot: nothing carries over, but eggs can still be re-identified
+            for t in tracks:
+                if t.confirmed:
+                    lost.append({"tid": t.tid, "c": t.det["c"], "size": t.size(), "frame": f, "trail": t.trail})
+            tracks = []
         preds = [t.predict() for t in tracks]
         # cost: centroid distance relative to egg size, minus a bonus for box overlap
         cost = np.full((len(tracks), len(dets)), 1e6)
         for i, (t, p) in enumerate(zip(tracks, preds)):
             pbox = shifted_box(t.det["box"], t.det["c"], p)
             for j, d in enumerate(dets):
+                rw, rh, ra = t.ref()
                 dist = np.hypot(d["c"][0] - p[0], d["c"][1] - p[1]) / max(t.size(), 1)
-                if dist <= GATE:
+                ratio = d["area"] / max(ra, 1)
+                slack = min(1.5, 1 + 0.25 * t.miss)          # a little more room after missed frames
+                dy_ok = abs(d["c"][1] - p[1]) <= GATE_Y * rh
+                if dist <= GATE * slack and dy_ok and 1 / AREA_RATIO <= ratio <= AREA_RATIO:
                     cost[i, j] = dist - box_iou(pbox, d["box"])
         matched_t, matched_d = set(), set()
         if cost.size:
@@ -224,10 +272,13 @@ def track(all_dets):
                 else:
                     t.tid = next_id
                     next_id += 1
-        # retire stale tracks
+        # retire stale tracks: hidden too long, or the picture has changed completely since the egg was
+        # last seen (a gradual transition such as the iris wipe, which is not a hard cut)
         keep = []
         for t in tracks:
-            if t.confirmed and t.miss > MAX_AGE:
+            changed = (thumbs is not None and t.miss and
+                       np.abs(thumbs[f] - thumbs[f - t.miss]).mean() > CUT_DIFF)
+            if t.confirmed and (t.miss > MAX_AGE or changed):
                 lost.append({"tid": t.tid, "c": t.det["c"], "size": t.size(), "frame": f, "trail": t.trail})
             elif not t.confirmed and t.hits == 0:
                 pass
@@ -324,14 +375,18 @@ def main():
         del frames
         if args.cache:
             args.cache.write_bytes(pickle.dumps((dets, fps, scale)))
-    per_frame = track(dets)
+    cuts, thumbs = scene_cuts(args.video, args.start, len(dets))
+    print(f"scene cuts at frames {sorted(c + args.start for c in cuts)}")
+    per_frame = track(dets, cuts, thumbs)
     df = render(args.video, per_frame, args.out / "tracked_raw.mp4", fps, args.start, scale)
     df.to_csv(args.out / "tracks.csv", index=False)
 
     summary = {
         "frames": len(dets), "fps": fps, "config": str(args.config.name), "detection_scale": round(scale, 3),
         "params": {"MIN_HITS": MIN_HITS, "MAX_AGE": MAX_AGE, "REID_FRAMES": REID_FRAMES, "GATE": GATE,
-                   "REID_GATE": REID_GATE, "REFLECT_H": REFLECT_H},
+                   "REID_GATE": REID_GATE, "REFLECT_H": REFLECT_H,
+                   "AREA_RATIO": AREA_RATIO, "CUT_DIFF": CUT_DIFF,
+                   "GATE_Y": GATE_Y, "SIZE_WINDOW": SIZE_WINDOW},
         "frames_with_detections": int(sum(bool(d) for d in dets)),
         "track_ids": sorted(int(i) for i in df.id.unique()) if len(df) else [],
         "tracks": {int(i): {"first_frame": int(g.frame.min()), "last_frame": int(g.frame.max()),

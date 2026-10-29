@@ -113,6 +113,12 @@ python src/track_video.py --video data/video/egg_video.mp4 --config configs/vide
   * Tracks are confirmed after 3 hits.
   * A hidden egg coasts for up to 2 s, for hand occlusions.
   * An egg that reappears takes over the ID of a nearby hidden or lost egg.
+  * Matches are limited by the egg's typical size, by vertical movement (a jump straight down is the egg's
+    reflection on the glossy table) and by area.
+  * Reflections and duplicates can't start new tracks.
+  * At a scene change, all tracks are dropped.
+  * **Known limitation:** at about 30 s, one hand covers both identical eggs at once. Which egg is which afterwards
+    can't be verified from the video; the tracker decides by distance.
 * **Outputs:** an annotated video, `tracks.csv` and `summary.json` in `outputs/video/`.
 
 ## AI tool disclosure
