@@ -1,6 +1,6 @@
-"""Build report/report.pdf from report/report.md.
+"""Build report.pdf (repository root) from report/report.md.
 
-The text is in report/report.md. This script:
+The text is in report/report.md (kept locally; only the PDF is published in the repository). This script:
   1. fills in generated parts: {{EXPERIMENT_LOG}} (from outputs/experiments/log.csv), {{DRIVE_LINK}}, {{AUTHOR}}
   2. draws figures that only the report needs (trial progress chart)
   3. copies every figure the report uses into report/figures/, so the report folder is self-contained
@@ -155,7 +155,7 @@ def main():
     out_html = REPORT / "report.html"
     out_html.write_text(page, encoding="utf-8")
 
-    pdf = REPORT / "report.pdf"
+    pdf = ROOT / "report.pdf"
     subprocess.run([find_browser(), "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
                     f"--print-to-pdf={pdf}", out_html.as_uri()], check=True, capture_output=True, timeout=180)
     from pypdf import PdfReader

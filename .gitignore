@@ -18,3 +18,5 @@ __pycache__/
 .ipynb_checkpoints/
 data/video/
 report/report.html
+# report source and figures stay local; only report.pdf (repo root) is published
+report/
