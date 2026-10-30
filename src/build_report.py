@@ -47,6 +47,7 @@ FIGURES = {
     "track_750.jpg": "outputs/tracking_debug/old_vs_new_frame_750.jpg",
     "track_690.jpg": "outputs/tracking_debug/old_vs_new_frame_690.jpg",
     "handover.jpg": "outputs/viz/handover_closeup.jpg",
+    "held_frames.jpg": "outputs/tracking_debug/held_frames_hd.jpg",
 }
 
 CSS = """

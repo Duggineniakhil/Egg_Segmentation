@@ -39,15 +39,19 @@ to within 0.01.
 ![identity timeline](fig_id_timeline.png)
 
 **What the numbers say:**
-- **The ID switch is gone.** IDF1 rises from 0.62 to 0.95, and the final tracker has **no frame where an egg
-  carries the other egg's ID**. The old tracker swaps A and B at the handover and keeps them swapped until the
+- **The ID switch is gone.** IDF1 rises from 0.62 to 0.95. Zero ID switches were observed across the 196 sampled
+  evaluation frames, and no sampled frame shows an egg with the other egg's ID. Identity continuity was also
+  inspected frame by frame: `src/check_tracks.py` checks every frame in six segments before and after the handover,
+  and the annotated video was checked by eye. The old tracker swaps A and B at the handover and keeps them swapped until the
   end (109 sampled frames from frame 754, the red bars).
 - **Held eggs are now actually followed.** The tracker has a correct estimate for 85% of the held-egg frames
   (old: 32%), with mean position error 0.07 egg diagonals.
 - **The remaining misses are explained:**
   - **Frame 222:** the first frame of the scene. A new track is confirmed after 3 detections, by design.
-  - **Frames 534–554:** egg A held low in the hand. The estimate sits about half an egg above the egg (it is
-    still the right ID), the known offset where the hand lowers the egg faster than the flow estimate follows.
+  - **Frames 534–554** (about 1 s): egg A is lowered to the table with the fingers over its top. The estimate
+    follows the hand's knuckles by optical flow and sits about 105 px (one egg diagonal) directly above the egg,
+    without locking onto the sliver of white below the fingers. The ID stays correct, and the egg is recovered
+    when it is put down (frame 557).
 - **On-table accuracy is near perfect:** recall 0.994 and IDF1 0.997.
 
 **Caveats:**

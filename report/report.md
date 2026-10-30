@@ -6,7 +6,7 @@
 
 **Summary**
 
-- **Task 1:** pseudo ground-truth masks for all 110 images from **Grounding DINO + SAM ViT-H**: 213 eggs, with 3
+- **Task 1:** pseudo ground-truth masks for all 110 images from **Grounding DINO + SAM ViT-H**: 138 eggs, with 3
     images fixed by hand-written prompts.
 - **Task 2:** a **scene-grouped 4:1 split** (87 dev / 23 eval images, 4 whole eval scenes) that measurably reduces
     leakage, and a fully classical segmenter developed over **30 logged trials**. The key steps were a multi-channel
@@ -17,8 +17,10 @@
     ablation, scene-level confidence intervals, and a follow-up experiment (v2) that fixes that error on dev but not
     on eval, reported as such.
 - **Task 4:** the classical detector plus a tracker that follows eggs **through hand pick-ups** with optical flow.
-    Against SAM ground truth on 196 frames: **MOTA 0.962, IDF1 0.953, 0 ID switches**. An earlier version swapped the
-    two eggs at 30 s (IDF1 0.62); the cause and the fix are described.
+    On 196 sampled frames scored against SAM ground truth: **MOTA 0.962, IDF1 0.953, and zero ID switches observed**.
+    An earlier version swapped the two eggs at 30 s (IDF1 0.62); the cause and the fix are described.
+
+Setup and the commands to reproduce every task are in the repository [README](https://github.com/Duggineniakhil/Egg_Segmentation#readme).
 
 </div>
 
@@ -60,7 +62,7 @@ hand-written prompts, recorded as `manual` in the meta files:
     on each side of the rod.
 
 The review also exposed a bug: the first mask cleanup kept only the largest piece, so the far side of an occluded
-egg was dropped. Hence the "≥ 15% of the largest piece" rule above. The final result is **213 eggs** (93 images
+egg was dropped. Hence the "≥ 15% of the largest piece" rule above. The final result is **138 eggs** (93 images
 with one egg, 6 with two, 11 with three).
 
 <img src="figures/sam_review.jpg" style="max-width:66%">
@@ -374,7 +376,9 @@ by fingers and it is **not detected**.
     it's another egg or a reflection. New IDs are only issued when no hidden egg can explain the detection.
 - **Dropping tracks:** only at a scene change, when an egg leaves the frame, or after 30 s hidden.
 - **Logging:** every new ID, miss and recovery (with distance and confidence) goes to `tracking_log.csv`.
-- **Display:** a hidden egg keeps its "Egg N" label, on a dashed box at its estimated position.
+- **Display:** a visible egg is drawn with its mask and "Egg N". A hidden or held egg gets the same "Egg N" label
+    (no "hidden" text) on a dashed box at its *estimated* position. The dashed box means the position is estimated,
+    not detected. How well that estimate follows the held egg is measured in 4.5.
 
 ## 4.3 The ID switch at 30 s: root cause and fix
 **What happens in the video.** Frame-by-frame viewing showed that at 30 s one hand holds egg A at the far left and
@@ -416,48 +420,58 @@ MOTA, IDF1 and ID switches. False positives are only counted in frames where SAM
 
 ![](figures/id_timeline.png)
 
-The remaining 8 misses are:
+**Identity:** zero ID switches were observed across the 196 sampled evaluation frames, and no sampled frame shows an
+egg with the other egg's ID. Identity continuity was also inspected frame by frame:
+
+- `src/check_tracks.py` checks every frame in six segments before and after the 30 s handover (frames 230–470,
+    570–700, 760–990) against hand-written egg positions.
+- The annotated video and debug frames were checked visually at every pick-up and the handover.
+
+These per-frame checks found no switch either, but they are a different kind of evidence from the sampled metrics.
+
+**The 8 sampled misses:**
 
 - **Frame 222:** the first frame of the scene, before the 3-hit confirmation.
-- **Frames 534–554:** an egg held low in the hand, where the estimate sits about half an egg above it. The ID is
-    still correct.
+- **Frames 534–554** (6 frames, about 1 s; see 4.5).
+
+## 4.5 Held eggs in the output video
+The video shows no "(hidden)" labels. Each held stretch was checked against `tracks.csv` and the frames below:
+
+| Egg | held stretch (frames) | estimate travel | longest stationary run | estimate locked onto the egg's white |
+|---|---|---|---|---|
+| Egg 1 | 476–556 | 543 px | 7 frames (0.3 s) | 44 of 81 frames |
+| Egg 1 | 647–748 | 678 px | 7 frames | 83 of 102 frames |
+| Egg 2 | 728–809 | 446 px | 4 frames | 61 of 82 frames |
+
+So the box moves with the hand rather than standing where the egg was last seen. In the frames where it isn't
+locked onto the egg's white, it is moved by optical flow alone.
+
+![](figures/held_frames.jpg)
+<p class="caption">Frames 486–785 of the 1080p output (dashed box = estimated position of a held egg). The box is on the egg in the hand at 486, 506, 520, 668, 680, 700, 740, 760 and 785. At 534–554 it sits on the back of the hand above Egg 1.</p>
+
+**Measured on the sampled ground truth:** 35 of 41 held-egg frames (85%) have the estimate within half an egg
+diagonal of the true egg, with a mean error of 0.07 diagonals, and the ID is correct in all of them.
+
+**The 6 misses (frames 534–554) are one failure.** As the hand lowers Egg 1 to the table:
+
+- the fingers cover the top of the egg, and only a sliver of white shows below them;
+- the estimate follows the hand's knuckles by optical flow, about **105 px (one egg diagonal, about 1.5 egg heights)
+    directly above the egg**. Horizontally it is right, within 13 px.
+- the egg's visible white is just outside the radius in which the estimate may lock onto it. Widening that radius
+    was tried: the estimate then locked onto the shirt's white checks and the wall, so it was kept.
+
+For about a second the label is near the egg but on the hand, not on the egg. The ID stays correct, and the egg is
+recovered exactly when it is put down (frame 557).
+
+**Not measured:** while an egg is lifted high near the shirt (frames 506–530 and 670–686), SAM didn't find it either,
+so those frames have no ground truth and were checked only by eye. The box is on the egg in the sampled frames
+above. A smaller artifact: at frame 506, Egg 2's mask briefly includes a sliver next to the egg passing in the hand.
 
 **Limitations:**
 
 - **The ground truth is SAM plus my own identity labels.**
-- **Every 4th frame is sampled.** Per-frame checkpoints (`src/check_tracks.py`) cover the full frame rate.
+- **The quantitative evaluation samples every 4th frame;** the per-frame checks above are separate.
 - **The eggs are identical,** so identity rests on motion continuity. A fully hidden egg moving without anything
     visible would only be a best guess; the tracker flags such recoveries as `low_confidence`, and none occurred.
 
-# Reproducibility and use of AI tools
-
-## Reproducing everything
-```
-pip install -r requirements.txt
-python src/prepare_data.py                                   # dataset -> data/images
-# Task 1 (GPU): notebooks/task1_sam_kaggle.ipynb on Kaggle -> outputs/sam_masks (committed)
-python src/make_split.py                                     # Task 2 split
-python src/run_experiment.py configs/t16_nest_cap4.yaml      # any trial on dev
-python src/run_experiment.py configs/t16_nest_cap4.yaml --split eval --save-masks
-python src/run_experiment.py configs/t16_nest_cap4.yaml --save-masks --no-log
-python src/evaluate.py && python src/stats.py && python src/ablation.py   # Task 3
-python src/track_video.py --video data/video/egg_video.mp4  # Task 4 (or notebooks/task4_tracking_kaggle.ipynb)
-python src/eval_tracking.py outputs/video/tracks.csv        # needs the video GT (notebooks/task4_video_gt_kaggle.ipynb)
-python src/build_report.py --drive-link <link>               # this report
-```
-
-## Use of AI tools
-This project was developed with **Claude Code** (Anthropic's AI coding assistant), used interactively throughout.
-
-- **What Claude Code did:**
-    - wrote most of the code: notebooks, segmentation pipeline, metrics, tracker and analysis scripts;
-    - ran the experiments and produced the diagnostics and figures;
-    - drafted this report.
-- **What I did:**
-    - set the direction and decided what to pursue at each step (for example the Kaggle/GPU setup, going beyond the
-        baseline, the root-cause investigation of the tracking ID switch, and the robustness work);
-    - ran the GPU notebooks;
-    - reviewed the results.
-- **How the results were checked:** every number in this report comes from the scripts in the repository and can be
-    regenerated with the commands above, and each stated finding was checked against the result files and figures
-    before being written down.
+<!-- Use of AI tools: add your section here (then run: python src/build_report.py ...) -->

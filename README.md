@@ -152,7 +152,8 @@ python src/track_video.py --video data/video/egg_video.mp4 --config configs/vide
 * **Quantitative evaluation** ([`outputs/video_gt/tracking_eval.md`](outputs/video_gt/tracking_eval.md)): SAM ground
   truth on every 4th frame (`notebooks/task4_video_gt_kaggle.ipynb`, then `python src/build_video_gt.py`), scored
   with `python src/eval_tracking.py <tracks.csv> [--scale 3 for 1080p]`.
-  * **Final tracker:** MOTA **0.962**, IDF1 **0.953**, **0 ID switches**, and 85% of held-egg frames followed.
+  * **Final tracker,** on 196 sampled frames: MOTA **0.962**, IDF1 **0.953**, zero ID switches observed, and 85% of
+    held-egg frames followed.
   * **Previous tracker:** MOTA 0.882, IDF1 0.620, with wrong IDs on every sampled frame after the 30 s handover.
 
 ## AI tool disclosure
