@@ -474,4 +474,6 @@ above. A smaller artifact: at frame 506, Egg 2's mask briefly includes a sliver 
 - **The eggs are identical,** so identity rests on motion continuity. A fully hidden egg moving without anything
     visible would only be a best guess; the tracker flags such recoveries as `low_confidence`, and none occurred.
 
-<!-- Use of AI tools: add your section here (then run: python src/build_report.py ...) -->
+## Use of AI Tools
+
+Claude was used as a supporting tool for code assistance, debugging, exploring implementation improvements, and preparing project documentation. All experimental results and final outputs were reviewed and validated by me.
